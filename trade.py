@@ -50,7 +50,9 @@ class trade:
     def __init__(self):
        # parameters
        self.rate_diff = 0.0
-       self.rate = "non"
+       self.rate = 0
+       self.ratebuff = []
+       self.rate_buffsize = 16
 #       now=datetime.now()
 #       self.day    = now.strftime('%d')
 #       self.hour   = now.strftime('%h')
@@ -92,13 +94,11 @@ class trade:
             # long
             if (self.shortpos.amount - posnum) >= 0:
                 #short port settlement
-###                self.cash -= posnum * 90  #trade_loss  pt2
                 self.cash += self.shortpos.settle(posnum)
             else:
                 #short all settlement
                 if self.shortpos.amount > 0:
                     self.longpos.get(self.rate, (posnum - self.shortpos.amount))
-###                    self.cash -= (posnum - self.shortpos.amount) * 90  #trade_loss  pt2
                     self.cash += self.shortpos.settle(posnum)
                 #get long pos
                 else:
@@ -111,13 +111,11 @@ class trade:
             # short
             if (self.longpos.amount - posnum) >= 0:
                 #long port settlement
-###                self.cash -= posnum * 90  #trade_loss
                 self.cash += self.longpos.settle(posnum)
             else:
                 #long all settlement
                 if self.longpos.amount > 0:
                     self.shortpos.get(self.rate, posnum - self.longpos.amount)
-###                    self.cash -= (posnum - self.longpos.amount) * 90  #trade_loss  pt2
                     self.cash += self.longpos.settle(posnum)
                 #get short pos
                 else:
@@ -137,11 +135,13 @@ class trade:
        self.minute = minute
 
     def updateRate(self, rate):
-       if self.rate != "non":
-           self.rate_diff = rate - self.rate
        self.rate = rate
+       val = rate/( ( sum(self.ratebuff) + rate) / ( len(self.ratebuff) + 1 ) )
+       self.ratebuff.append(val)
+       if len(self.ratebuff) > self.rate_buffsize:
+           self.ratebuff.pop(0)  #pop index=0
 
-    def dispState(self):
+    def dispProfit(self):
         print(str(int(self.day))+"."+str(int(self.hour))+":"+str(int(self.minute))+", ",   "cash:", '{:.2f}'.format(self.cash), "including_profit: [long:",'{:.2f}'.format(self.longpos.unrealized_profit),"],[short",'{:.2f}'.format(self.shortpos.unrealized_profit),"]" )
         #print(" long :","pos=", self.longpos.amount, ",\trate=", self.longpos.acquisition_rate,"\tinc_prft=", '{:.2f}'.format(self.longpos.unrealized_profit) )
         #print(" short:","pos=", self.shortpos.amount, ",\trate=", self.shortpos.acquisition_rate,"\tinc_prft=", '{:.2f}'.format(self.shortpos.unrealized_profit) )
@@ -154,14 +154,16 @@ class trade:
 
     def observe(self):
        self.state = []
-       self.state.append(self.rate_diff) #0
+       self.state =  self.ratebuff
+
+#       self.state.append(self.rate_diff) #0
        #self.state.append(self.day)             #1
        #self.state.append(self.hour)            #2
        #self.state.append(self.minute)          #3
-       self.state.append(self.longpos.unrealized_profit)  #4
-       self.state.append(self.shortpos.unrealized_profit) #5
-       self.state.append(self.longpos.amount)             #6
-       self.state.append(self.shortpos.amount)            #7
+#       self.state.append(self.longpos.unrealized_profit)  #4
+#       self.state.append(self.shortpos.unrealized_profit) #5
+#       self.state.append(self.longpos.amount)             #6
+#       self.state.append(self.shortpos.amount)            #7
        return self.state, self.reward
 
     def reset(self):

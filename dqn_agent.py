@@ -19,7 +19,7 @@ class DQNAgent:
         self.replay_memory_size = 1000
         self.learning_rate = 0.001
         self.discount_factor = 0.9
-        self.exploration = 0.003
+        self.exploration = 0.05
         self.model_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "models")
         self.model_name = "{}.ckpt".format("trade")
         # replay memory
@@ -33,10 +33,10 @@ class DQNAgent:
 
     def init_model(self):
         # input layer (1 x 5)
-        self.x = tf.placeholder(tf.float32, [None, 5])
+        self.x = tf.placeholder(tf.float32, [None, 16])
 
         # fully connected layer (32)
-        W_fc1 = tf.Variable(tf.truncated_normal([5, 32], stddev=0.01))
+        W_fc1 = tf.Variable(tf.truncated_normal([16, 32], stddev=0.01))
         b_fc1 = tf.Variable(tf.zeros([32]))
         h_fc1 = tf.nn.relu(tf.matmul(self.x, W_fc1) + b_fc1)
 
@@ -64,13 +64,13 @@ class DQNAgent:
         # Q(state, action) of all actions
         return self.sess.run(self.y, feed_dict={self.x: [state]})[0]
 
-    def select_action(self, state, epsilon):
+    def select_action(self, state, epsilon, long, short):
         max_amount = 10
         if np.random.rand() <= epsilon:
             # random
-            if state[3] >= max_amount:
+            if long >= max_amount:
                 select_action = (self.enable_actions[0], self.enable_actions[2])
-            elif state[4] >= max_amount:
+            elif short >= max_amount:
                 select_action = (self.enable_actions[0], self.enable_actions[1])
             else:
                 select_action = self.enable_actions
@@ -79,9 +79,9 @@ class DQNAgent:
             # max_action Q(state, action)
             action = self.enable_actions[np.argmax(self.Q_values(state))]
         #bind action judge
-        if (state[3] >= max_amount) & (action == 1) :
+        if (long >= max_amount) & (action == 1) :
             action = 0
-        elif (state[4] >= max_amount) & (action == 2) :
+        elif (short >= max_amount) & (action == 2) :
             action = 0
 
         return action

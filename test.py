@@ -76,12 +76,15 @@ if __name__ == "__main__":
         YmdHM = row[0] + "-" + row[1]
         tm = dt.strptime(YmdHM, '%Y.%m.%d-%H:%M')
         env.updateTime(float(tm.day), float(tm.hour), float(tm.minute))  #day, hour, min
-        state_t_1, reward_t = env.observe()
         
-        state_t = state_t_1
-        # execute action in environment
-        action_t = agent.select_action(state_t, agent.exploration)
-        env.execute_action(action_t)
+        if (len(env.ratebuff) == env.rate_buffsize):
+            state_t_1, reward_t = env.observe()
+            
+            state_t = state_t_1
+            # execute action in environment
+            agent.exploration = 0.001
+            action_t = agent.select_action(state_t, agent.exploration, env.longpos.amount, env.shortpos.amount)
+            env.execute_action(action_t)
 
         #log
-        env.dispState()
+        env.dispProfit()
