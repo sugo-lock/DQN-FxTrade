@@ -13,7 +13,7 @@ if __name__ == "__main__":
     agent = DQNAgent(env.enable_actions)
 
     #histrical data
-    f = open('data\USDJPY1_20181016.csv', 'r')
+    f = open('./data/USDJPY1_20181016.csv', 'r')
     reader = csv.reader(f)
     header = next(reader)
     

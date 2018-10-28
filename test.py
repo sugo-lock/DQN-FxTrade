@@ -4,12 +4,9 @@ import argparse
 import os
 import csv
 from trade import trade
-import matplotlib.animation as animation
 import matplotlib.pyplot as plt
-
-from catch_ball import CatchBall
 from dqn_agent import DQNAgent
-
+from datetime import datetime as dt
 
 def init():
     img.set_array(state_t_1)
@@ -17,35 +14,35 @@ def init():
     return img,
 
 
-def animate(step):
-    global win, lose
-    global state_t_1, reward_t, terminal
+#def animate(step):
+#    global win, lose
+#    global state_t_1, reward_t, terminal
 
-    if terminal:
-        env.reset()
+#    if terminal:
+#        env.reset()#
+#
+#        # for log
+#        if reward_t == 1:
+#            win += 1
+#        elif reward_t == -1:
+#            lose += 1
 
-        # for log
-        if reward_t == 1:
-            win += 1
-        elif reward_t == -1:
-            lose += 1
+#        print("WIN: {:03d}/{:03d} ({:.1f}%)".format(win, win + lose, 100 * win / (win + lose)))
 
-        print("WIN: {:03d}/{:03d} ({:.1f}%)".format(win, win + lose, 100 * win / (win + lose)))
-
-    else:
-        state_t = state_t_1
+#    else:
+#        state_t = state_t_1###
 
         # execute action in environment
-        action_t = agent.select_action(state_t, 0.0)
-        env.execute_action(action_t)
-
-    # observe environment
-    state_t_1, reward_t, terminal = env.observe()
-
-    # animate
-    img.set_array(state_t_1)
-    plt.axis("off")
-    return img,
+#        action_t = agent.select_action(state_t, 0.0)
+#        env.execute_action(action_t)
+#
+#    # observe environment
+#    state_t_1, reward_t, terminal = env.observe()
+#
+#    # animate
+#    img.set_array(state_t_1)
+#    plt.axis("off")
+#    return img,
 
 
 if __name__ == "__main__":
@@ -65,7 +62,7 @@ if __name__ == "__main__":
     state_t_1, reward_t = env.observe()
 
     #historucal data
-    f = open('data\USDJPY1_20181001-1003.csv', 'r')
+    f = open('./data/USDJPY1_201805-201810.csv', 'r')
     reader = csv.reader(f)
     header = next(reader)
 
