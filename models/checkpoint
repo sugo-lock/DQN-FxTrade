@@ -1,0 +1,2 @@
+model_checkpoint_path: "C:\\workspace\\git\\trademodel\\models\\trade.ckpt"
+all_model_checkpoint_paths: "C:\\workspace\\git\\trademodel\\models\\trade.ckpt"
