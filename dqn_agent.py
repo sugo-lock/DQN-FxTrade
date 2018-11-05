@@ -16,10 +16,10 @@ class DQNAgent:
         self.enable_actions = enable_actions
         self.n_actions = len(self.enable_actions)
         self.minibatch_size = 8
-        self.replay_memory_size = 1000
-        self.learning_rate = 0.001
-        self.discount_factor = 0.9
-        self.exploration = 0.05
+        self.replay_memory_size = 128
+        self.learning_rate = 0.05
+        self.discount_factor = 0.90
+        self.exploration = 0.1
         self.model_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "models")
         self.model_name = "{}.ckpt".format("trade")
         # replay memory
@@ -33,15 +33,18 @@ class DQNAgent:
 
     def init_model(self):
         # input layer (1 x 5)
-        self.x = tf.placeholder(tf.float32, [None, 16])
+        with tf.name_scope('state'):
+            self.x = tf.placeholder(tf.float32, [None, 16])
 
         # fully connected layer (32)
-        W_fc1 = tf.Variable(tf.truncated_normal([16, 32], stddev=0.01))
-        b_fc1 = tf.Variable(tf.zeros([32]))
+        W_fc1 = tf.Variable(tf.truncated_normal([16, 64], stddev=0.01))
+        b_fc1 = tf.Variable(tf.zeros([64]))
+        #h_fc1 = tf.matmul(self.x, W_fc1) + b_fc1        
         h_fc1 = tf.nn.relu(tf.matmul(self.x, W_fc1) + b_fc1)
+        #h_fc1 = tf.nn.sigmoid(tf.matmul(self.x, W_fc1) + b_fc1)
 
         # output layer (n_actions)
-        W_out = tf.Variable(tf.truncated_normal([32, self.n_actions], stddev=0.01))
+        W_out = tf.Variable(tf.truncated_normal([64, self.n_actions], stddev=0.01))
         b_out = tf.Variable(tf.zeros([self.n_actions]))
         self.y = tf.matmul(h_fc1, W_out) + b_out
 
@@ -58,36 +61,48 @@ class DQNAgent:
 
         # session
         self.sess = tf.Session()
+         # tendor borad
+        with tf.name_scope('summary'):
+            tf.summary.scalar('loss', self.loss)
+            merged = tf.summary.merge_all()
+            writer = tf.summary.FileWriter('./logs', self.sess.graph)
         self.sess.run(tf.global_variables_initializer())
 
     def Q_values(self, state):
         # Q(state, action) of all actions
         return self.sess.run(self.y, feed_dict={self.x: [state]})[0]
 
-    def select_action(self, state, epsilon, long, short):
-        max_amount = 10
+#    def select_action(self, state, epsilon, long, short):
+#        max_amount = 10
+#        if np.random.rand() <= epsilon:
+#            # random
+#            if long >= max_amount:
+#                select_action = (self.enable_actions[0], self.enable_actions[2])
+#            elif short >= max_amount:
+#                select_action = (self.enable_actions[0], self.enable_actions[1])
+#            else:
+#                select_action = self.enable_actions
+#            action = np.random.choice(select_action)
+#        else:
+#            # max_action Q(state, action)
+#            action = self.enable_actions[np.argmax(self.Q_values(state))]
+#        #bind action judge
+#        if (long >= max_amount) & (action == 1) :
+#            action = 0
+#        elif (short >= max_amount) & (action == 2) :
+#            action = 0
+#        return action
+
+    def select_action(self, state, epsilon):
         if np.random.rand() <= epsilon:
             # random
-            if long >= max_amount:
-                select_action = (self.enable_actions[0], self.enable_actions[2])
-            elif short >= max_amount:
-                select_action = (self.enable_actions[0], self.enable_actions[1])
-            else:
-                select_action = self.enable_actions
-            action = np.random.choice(select_action)
+            return np.random.choice(self.enable_actions)
         else:
             # max_action Q(state, action)
-            action = self.enable_actions[np.argmax(self.Q_values(state))]
-        #bind action judge
-        if (long >= max_amount) & (action == 1) :
-            action = 0
-        elif (short >= max_amount) & (action == 2) :
-            action = 0
+            return self.enable_actions[np.argmax(self.Q_values(state))]
 
-        return action
-
-    def store_experience(self, state, action, reward, state_1):
-        self.D.append((state, action, reward, state_1))
+    def store_experience(self, state, action, reward, state_1,terminal):
+        self.D.append((state, action, reward, state_1, terminal))
 
     def experience_replay(self):
         state_minibatch = []
@@ -98,7 +113,7 @@ class DQNAgent:
         minibatch_indexes = np.random.randint(0, len(self.D), minibatch_size)
 
         for j in minibatch_indexes:
-            state_j, action_j, reward_j, state_j_1 = self.D[j]
+            state_j, action_j, reward_j, state_j_1, terminal = self.D[j]
             action_j_index = self.enable_actions.index(action_j)
 
             y_j = self.Q_values(state_j)
