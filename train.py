@@ -6,14 +6,14 @@ from datetime import datetime as dt
 
 if __name__ == "__main__":
     # parameters
-    n_epochs = 100
+    n_epochs = 10000
 
     # environment, agent
     env = trade()
     agent = DQNAgent(env.enable_actions)
 
     #histrical data
-    f = open('./data/USDJPY1_20181016_range.csv', 'r')
+    f = open('./data/USDJPY1_201810.csv', 'r')
     reader = csv.reader(f)
     header = next(reader)
     

@@ -68,9 +68,9 @@ if __name__ == "__main__":
     state_t_1, reward_t, terminal = env.observe()
 
     #historucal data
-#    f = open('./data/USDJPY1_201805-201810.csv', 'r')
+    f = open('./data/USDJPY1_201805-201810.csv', 'r')
 #    f = open('./data/USDJPY1_20181016_range.csv', 'r')
-    f = open('./data/USDJPY1_20181004-1008.csv', 'r')
+#    f = open('./data/USDJPY1_20181004-1008.csv', 'r')
     reader = csv.reader(f)
     header = next(reader)
 
